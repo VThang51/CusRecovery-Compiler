@@ -37,7 +37,12 @@ on:
       BUILD_TARGET:
         description: 'Build Target'
         required: true
-        default: 'recoveryimage'
+        default: 'recovery'
+        type: choice
+        options:
+          - 'recovery'
+          - 'boot'
+          - 'vendorboot'
 jobs:
   Custom-Recovery-Compiling:
     runs-on: ubuntu-latest
@@ -94,7 +99,7 @@ jobs:
           ${{ inputs.ADD_EXPORT }}
           . build/envsetup.sh
           lunch ${{ inputs.LAUNCH_CHOICE }}
-          mka ${{ inputs.BUILD_TARGET }}
+          mka ${{ inputs.BUILD_TARGET }}image
         continue-on-error: true
 
       - name: Rename File

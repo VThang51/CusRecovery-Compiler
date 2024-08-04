@@ -1,0 +1,110 @@
+name: Custom Recovery Compiler
+on:
+  workflow_dispatch:
+    inputs:
+      MANIFEST_URL:
+        description: 'Manifest URL'
+        required: true
+        default: 'https://github.com/minimal-manifest-twrp/platform_manifest_twrp_aosp.git'
+      MANIFEST_BRANCH:
+        description: 'Manifest Branch'
+        required: true
+        default: 'twrp-12.1'
+      DEVICE_TREE_URL:
+        description: 'Device Tree URL'
+        required: true
+        default: 'https://github.com/VThang51/android_device_samsung_a13nsxx.git'
+      DEVICE_TREE_BRANCH:
+        description: 'Device Tree Branch'
+        required: true
+        default: 'twrp-12.1'
+      DT_PATH:
+        description: 'Device Tree Path'
+        required: true
+        default: 'device/samsung/a13nsxx'
+      DEVICE_CODE:
+        description: 'Device Code'
+        required: true
+        default: 'a13nsxx'
+      LAUNCH_CHOICE:
+        description: 'Launch Choice'
+        required: true
+        default: 'twrp_a13nsxx-eng'
+      ADD_EXPORT:
+        description: 'Add "export"'
+        required: false
+        default: 'export ALLOW_MISSING_DEPENDENCIES=true'
+      BUILD_TARGET:
+        description: 'Build Target'
+        required: true
+        default: 'recoveryimage'
+jobs:
+  Custom-Recovery-Compiling:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@master
+
+      - name: Free Disk Space (Ubuntu)
+        uses: jlumbroso/free-disk-space@main
+        with:
+          # this might remove tools that are actually needed,
+          # if set to "true" but frees about 6 GB
+          tool-cache: false
+          # all of these default to true, but feel free to set to
+          # "false" if necessary for your workflow
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: true
+          swap-storage: true
+
+      - name: Install Repo
+        run: |
+          mkdir -p ~/.bin
+          PATH="${HOME}/.bin:${PATH}"
+          curl https://storage.googleapis.com/git-repo-downloads/repo > ~/.bin/repo
+          chmod a+rx ~/.bin/repo
+
+      - name: Git Config
+        run: |
+          mkdir twrp
+          cd twrp
+          git config --global user.email "${{ github.actor }}@users.noreply.github.com"
+          git config --global user.name "${{ github.actor }}"
+
+      - name: Sync Minimal Manifest
+        run: |
+          cd twrp
+          repo init --depth=1 -u ${{ inputs.MANIFEST_URL }} -b ${{ inputs.MANIFEST_BRANCH }}
+
+      - name: Sync Source
+        run: |
+          cd twrp
+          repo sync
+
+      - name: Clone Device Tree
+        run: |
+          git clone -b ${{ inputs.DEVICE_TREE_BRANCH }} ${{ inputs.DEVICE_TREE_URL }} twrp/${{ inputs.DT_PATH }}
+
+      - name: Compile Custom Recovery 
+        run: |
+          cd twrp
+          ${{ inputs.ADD_EXPORT }}
+          . build/envsetup.sh
+          lunch ${{ inputs.LAUNCH_CHOICE }}
+          mka ${{ inputs.BUILD_TARGET }}
+        continue-on-error: true
+
+      - name: Rename File
+        run: |
+          cd twrp/out/target/product/${{ inputs.DEVICE_CODE }}
+          mv ${{ inputs.BUILD_TARGET }}.img unofficialtwrp-${{ inputs.DEVICE_CODE }}.img
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: unofficialtwrp-${{ inputs.DEVICE_CODE }}
+          path: twrp/out/target/product/${{ inputs.DEVICE_CODE }}/unofficialtwrp-${{ inputs.DEVICE_CODE }}.img

@@ -31,8 +31,8 @@ jobs:
     - name: Clone Toolchain
       run: |
         cd kernel
-        git clone https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 -b android-msm-redbull-4.19-android14 toolchain/clang/host/linux-x86
-        git clone https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9 -b android-msm-redbull-4.19-android14 toolchain/gcc/linux-x86/aarch64/aarch64-linux-android-4.9
+        git clone https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 -b android12L-release toolchain/clang/host/linux-x86
+        git clone https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9 -b android12L-release toolchain/gcc/linux-x86/aarch64/aarch64-linux-android-4.9
 
     - name: Building Kernel
       run: |

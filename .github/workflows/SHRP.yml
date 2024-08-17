@@ -87,7 +87,7 @@ jobs:
       - name: Sync Source
         run: |
           cd shrp
-          repo init -u https://github.com/SHRP/manifest.git -b ${{ inputs.MANIFEST_BRANCH }}
+          repo init --depth=1 -u https://github.com/SHRP/manifest.git -b ${{ inputs.MANIFEST_BRANCH }}
           repo sync -c -j$(nproc --all) --force-sync --no-clone-bundle --no-tags
 
       - name: Clone Device Tree

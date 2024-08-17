@@ -1,11 +1,16 @@
-name: Custom Recovery Compiler
+name: TeamWin Compiler
 on:
   workflow_dispatch:
     inputs:
-      MANIFEST_URL:
-        description: 'Manifest URL'
+      MANIFEST_TYPE:
+        description: 'Manifest Type'
         required: true
-        default: 'https://github.com/minimal-manifest-twrp/platform_manifest_twrp_aosp.git'
+        default: 'aosp'
+        type: choice
+        options:
+          - 'aosp'
+          - 'omni'
+          - 'lineageos'
       MANIFEST_BRANCH:
         description: 'Manifest Branch'
         required: true
@@ -44,7 +49,7 @@ on:
           - 'boot'
           - 'vendorboot'
 jobs:
-  Custom-Recovery-Compiling:
+  Compiling-TeamWin:
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -82,7 +87,7 @@ jobs:
       - name: Sync Minimal Manifest
         run: |
           cd twrp
-          repo init --depth=1 -u ${{ inputs.MANIFEST_URL }} -b ${{ inputs.MANIFEST_BRANCH }}
+          repo init --depth=1 -u https://github.com/minimal-manifest-twrp/platform_manifest_twrp_${{ inputs.MANIFEST_TYPE }}.git -b ${{ inputs.MANIFEST_BRANCH }}
 
       - name: Sync Source
         run: |

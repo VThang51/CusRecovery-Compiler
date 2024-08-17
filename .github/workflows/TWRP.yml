@@ -1,4 +1,4 @@
-name: TeamWin Compiler
+name: TeamWin Recovery Compiler
 on:
   workflow_dispatch:
     inputs:
@@ -49,7 +49,7 @@ on:
           - 'boot'
           - 'vendorboot'
 jobs:
-  Compiling-TeamWin:
+  Compiling-TeamWin-Recovery:
     runs-on: ubuntu-latest
     permissions:
       contents: write

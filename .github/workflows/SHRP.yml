@@ -70,8 +70,8 @@ jobs:
 
       - name: Install Python 2.7
         run: |
-          curl -o python2.7.tar.xz https://www.python.org/ftp/python/2.7.18/Python-2.7.18.tar.xz
-          tar -xvf python-2.7.tar.xz
+          curl -O https://www.python.org/ftp/python/2.7.18/Python-2.7.18.tar.xz
+          tar -xvf Python-2.7.18.tar.xz
           cd Python-2.7.18
           ./configure
           make

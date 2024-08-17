@@ -1,0 +1,115 @@
+name: SkyHawk Recovery Compiler
+on:
+  workflow_dispatch:
+    inputs:
+      MANIFEST_BRANCH:
+        description: 'Manifest Branch'
+        required: true
+        default: 'shrp-12.1'
+      DT_URL:
+        description: 'Device Tree URL'
+        required: true
+        default: 'https://github.com/VThang51/android_device_samsung_a13nsxx.git'
+      DT_BRANCH:
+        description: 'Device Tree Branch'
+        required: true
+        default: 'twrp-12.1'
+      DT_PATH:
+        description: 'Device Tree Path'
+        required: true
+        default: 'device/samsung/a13nsxx'
+      DEVICE_CODE:
+        description: 'Device Code'
+        required: true
+        default: 'a13nsxx'
+      LAUNCH_CHOICE:
+        description: 'Launch Choice'
+        required: true
+        default: 'twrp_a13nsxx-eng'
+      ADD_EXPORT:
+        description: 'Add "export"'
+        required: false
+        default: 'export ALLOW_MISSING_DEPENDENCIES=true'
+      BUILD_TARGET:
+        description: 'Build Target'
+        required: true
+        default: 'recovery'
+        type: choice
+        options:
+          - 'recovery'
+          - 'boot'
+          - 'vendorboot'
+jobs:
+  Compiling-SkyHawk-Recovery:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@master
+
+      - name: Free Disk Space (Ubuntu)
+        uses: jlumbroso/free-disk-space@main
+        with:
+          # this might remove tools that are actually needed,
+          # if set to "true" but frees about 6 GB
+          tool-cache: false
+          # all of these default to true, but feel free to set to
+          # "false" if necessary for your workflow
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: true
+          swap-storage: true
+
+      - name: Setting Up Compiling Environment
+        run: |
+          sudo apt update
+          sudo apt install git-core gnupg flex bison build-essential zip curl zlib1g-dev libc6-dev-i386 x11proto-core-dev libx11-dev lib32z1-dev libgl1-mesa-dev libxml2-utils xsltproc unzip fontconfig git repo
+
+      - name: Install Python 2.7
+        run: |
+          curl -o python2.7.tar.xz https://www.python.org/ftp/python/2.7.18/Python-2.7.18.tar.xz
+          tar -xvf python-2.7.tar.xz
+          cd Python-2.7.18
+          ./configure
+          make
+          sudo make install
+
+      - name: Git Config
+        run: |
+          mkdir shrp
+          cd shrp
+          git config --global user.email "${{ github.actor }}@users.noreply.github.com"
+          git config --global user.name "${{ github.actor }}"
+
+      - name: Sync Source
+        run: |
+          cd shrp
+          repo init -u https://github.com/SHRP/manifest.git -b ${{ inputs.MANIFEST_BRANCH }}
+          repo sync -c -j$(nproc --all) --force-sync --no-clone-bundle --no-tags
+
+      - name: Clone Device Tree
+        run: |
+          git clone -b ${{ inputs.DT_BRANCH }} ${{ inputs.DT_URL }} shrp/${{ inputs.DT_PATH }}
+
+      - name: Compile Custom Recovery 
+        run: |
+          cd shrp
+          ${{ inputs.ADD_EXPORT }}
+          . build/envsetup.sh
+          lunch ${{ inputs.LAUNCH_CHOICE }}
+          mka ${{ inputs.BUILD_TARGET }}image
+        continue-on-error: true
+
+      - name: Rename File
+        run: |
+          cd shrp/out/target/product/${{ inputs.DEVICE_CODE }}
+          mv ${{ inputs.BUILD_TARGET }}.img SHRP-Official_${{ inputs.DEVICE_CODE }}.img
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SHRP-Official_${{ inputs.DEVICE_CODE }}
+          path: shrp/out/target/product/${{ inputs.DEVICE_CODE }}/SHRP-Official_${{ inputs.DEVICE_CODE }}.img
+

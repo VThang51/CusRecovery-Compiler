@@ -14,10 +14,25 @@ on:
         description: 'Toolchain Branch'
         required: true
         default: 'android12L-release'
+      PLATFORM_VERSION:
+        description: 'PLATFORM_VERSION'
+        required: true
+        default: '13'
+      ANDROID_MAJOR_VERSION:
+        description: 'ANDROID_MAJOR_VERSION'
+        required: true
+        default: 's'
+      ARCH:
+        description: 'ARCH'
+        required: true
+        default: 'arm64'
       DEFCONFIG:
         description: '"defconfig" file'
         required: true
         default: 'exynos850-a13xx_defconfig'
+      EXPORT:
+        description: 'Add "export"'
+        required: false
 jobs:
   Buiding-Kernel:
     runs-on: ubuntu-latest
@@ -55,11 +70,12 @@ jobs:
     - name: Building Kernel
       run: |
         cd kernel
-        export PLATFORM_VERSION=12
-        export ANDROID_MAJOR_VERSION=s
-        export ARCH=arm64 
-        make ${{ inputs.DEFCONFIG }}
-        make
+        export PLATFORM_VERSION=${{ inputs.PLATFORM_VERSION }}
+        export ANDROID_MAJOR_VERSION=${{ inputs.ANDROID_MAJOR_VERSION }}
+        export ARCH=${{ inputs.ARCH }}
+        ${{ inputs.EXPORT }}
+        make ARCH=${{ inputs.ARCH }} ${{ inputs.DEFCONFIG }}
+        make ARCH=${{ inputs.ARCH }}
 
     - uses: actions/upload-artifact@v4
       with:

@@ -1,5 +1,23 @@
-name: Kernel Builder
-on: push
+name: Kernel Builder (Local)
+on:
+  workflow_dispatch:
+    inputs:
+      KERNEL_URL:
+        description: 'Kernel Source URL'
+        required: true
+        default: 'https://github.com/VThang51/android_kernel_samsung_a13xx.git'
+      KERNEL_BRANCH:
+        description: 'Kernel Source Branch'
+        required: true
+        default: 'A135FXXU5DXA4_SWA'
+      TC_BRANCH:
+        description: 'Toolchain Branch'
+        required: true
+        default: 'android12L-release'
+      DEFCONFIG:
+        description: '"defconfig" file'
+        required: true
+        default: 'exynos850-a13xx_defconfig'
 jobs:
   Buiding-Kernel:
     runs-on: ubuntu-latest
@@ -26,13 +44,13 @@ jobs:
 
     - name: Clone Kernel Source
       run: |
-        git clone https://github.com/VThang51/android_kernel_samsung_a13xx.git -b A135FXXU5DXA4_SWA-OC kernel
+        git clone ${{ inputs.KERNEL_URL }} -b ${{ inputs.KERNEL_BRANCH }} kernel
 
     - name: Clone Toolchain
       run: |
         cd kernel
-        git clone https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 -b android12L-release toolchain/clang/host/linux-x86
-        git clone https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9 -b android12L-release toolchain/gcc/linux-x86/aarch64/aarch64-linux-android-4.9
+        git clone https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 -b ${{ inputs.TC_BRANCH }} toolchain/clang/host/linux-x86
+        git clone https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9 -b ${{ inputs.TC_BRANCH }} toolchain/gcc/linux-x86/aarch64/aarch64-linux-android-4.9
 
     - name: Building Kernel
       run: |
@@ -40,12 +58,12 @@ jobs:
         export PLATFORM_VERSION=12
         export ANDROID_MAJOR_VERSION=s
         export ARCH=arm64 
-        make exynos850-OC-a13xx_defconfig
+        make ${{ inputs.DEFCONFIG }}
         make
 
     - uses: actions/upload-artifact@v4
       with:
-        name: prebuilt
+        name: ${{ inputs.KERNEL_BRANCH }}
         path: |
           kernel/arch/arm64/boot/*
           kernel/drivers/*/*.ko

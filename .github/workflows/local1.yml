@@ -30,8 +30,8 @@ on:
         description: '"defconfig" file'
         required: true
         default: 'exynos850-a13xx_defconfig'
-      EXPORT:
-        description: 'Add "export"'
+      COMMAND:
+        description: 'Run Additional Command (Before Build)'
         required: false
 jobs:
   Buiding-Kernel:
@@ -73,7 +73,7 @@ jobs:
         export PLATFORM_VERSION=${{ inputs.PLATFORM_VERSION }}
         export ANDROID_MAJOR_VERSION=${{ inputs.ANDROID_MAJOR_VERSION }}
         export ARCH=${{ inputs.ARCH }}
-        ${{ inputs.EXPORT }}
+        ${{ inputs.COMMAND }}
         make ARCH=${{ inputs.ARCH }} ${{ inputs.DEFCONFIG }}
         make ARCH=${{ inputs.ARCH }}
 

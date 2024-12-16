@@ -59,7 +59,10 @@ jobs:
 
     - name: Clone Kernel Source
       run: |
-        git clone ${{ inputs.KERNEL_URL }} -b ${{ inputs.KERNEL_BRANCH }} kernel
+        mkdir kernel
+        cd kernel
+        git clone ${{ inputs.KERNEL_URL }} -b ${{ inputs.KERNEL_BRANCH }} .
+        git submodule update --init --recursive
 
     - name: Clone Toolchain
       run: |

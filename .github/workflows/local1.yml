@@ -67,6 +67,11 @@ jobs:
         git clone https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 -b ${{ inputs.TC_BRANCH }} toolchain/clang/host/linux-x86
         git clone https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9 -b ${{ inputs.TC_BRANCH }} toolchain/gcc/linux-x86/aarch64/aarch64-linux-android-4.9
 
+    - name: Remove Unused Folder
+      run: |
+        cd kernel/toolchain/clang/host/linux-x86
+        rm -rfv clang-3289846 clang-r416183b clang-r416183b1 clang-stable
+
     - name: Building Kernel
       run: |
         cd kernel

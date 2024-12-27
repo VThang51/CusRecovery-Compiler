@@ -85,9 +85,10 @@ jobs:
         make ARCH=${{ inputs.ARCH }} ${{ inputs.DEFCONFIG }}
         make ARCH=${{ inputs.ARCH }}
 
+    - name: Re-Compress Source
+      run: tar -cvJf ${{ inputs.KERNEL_BRANCH }}.tar.xz kernel
+
     - uses: actions/upload-artifact@v4
       with:
         name: ${{ inputs.KERNEL_BRANCH }}
-        path: |
-          kernel/arch/arm64/boot/*
-          kernel/drivers/*/*.ko
+        path: ${{ inputs.KERNEL_BRANCH }}.tar.xz

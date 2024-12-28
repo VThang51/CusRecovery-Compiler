@@ -1,0 +1,81 @@
+name: Kernel Builder (Local v2)
+on:
+  workflow_dispatch:
+    inputs:
+      KERNEL_URL:
+        description: 'Kernel Source URL'
+        required: true
+        default: 'https://github.com/VThang51/android_kernel_oppo_a12.git'
+      KERNEL_BRANCH:
+        description: 'Kernel Source Branch'
+        required: true
+        default: 'main'
+      TC_BRANCH:
+        description: 'Toolchain Branch'
+        required: true
+        default: 'pie-release'
+      ARCH:
+        description: 'ARCH'
+        required: true
+        default: 'arm64'
+      DEFCONFIG:
+        description: 'defconfig file'
+        required: true
+        default: 'oppo6765_19451_defconfig'
+      COMMAND:
+        description: 'Run Additional Command (Before Build)'
+        required: false
+jobs:
+  Buiding-Kernel:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Free Disk Space (Ubuntu)
+      uses: jlumbroso/free-disk-space@main
+      with:
+        # this might remove tools that are actually needed,
+        # if set to "true" but frees about 6 GB
+        tool-cache: true
+        # all of these default to true, but feel free to set to
+        # "false" if necessary for your workflow
+        android: true
+        dotnet: true
+        haskell: true
+        large-packages: true
+        docker-images: true
+        swap-storage: true
+
+    - name: Setup Environment
+      run: |
+        sudo apt update
+        sudo apt-get install git-core bc make flex bison
+
+    - name: Clone Kernel Source
+      run: |
+        mkdir kernel
+        cd kernel
+        git clone ${{ inputs.KERNEL_URL }} -b ${{ inputs.KERNEL_BRANCH }} .
+        git submodule update --init --recursive
+
+    - name: Clone Toolchain
+      run: |
+        cd kernel
+        git clone https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9 -b ${{ inputs.TC_BRANCH }} toolchain/gcc/linux-x86/aarch64/aarch64-linux-android-4.9
+
+    - name: Building Kernel
+      run: |
+        cd kernel
+        export ARCH=${{ inputs.ARCH }}
+		    export CROSS_COMPILE=$(pwd)/toolchain/gcc/linux-x86/aarch64/aarch64-linux-android-4.9/bin/aarch64-linux-gnu-
+        ${{ inputs.COMMAND }}
+        make ARCH=${{ inputs.ARCH }} ${{ inputs.DEFCONFIG }}
+        make ARCH=${{ inputs.ARCH }}
+
+    - name: Re-Compress Source
+      run: |
+        rm -rfv kernel/toolchain
+        tar -cvJf ${{ inputs.KERNEL_BRANCH }}.tar.xz kernel
+
+    - uses: actions/upload-artifact@v4
+      with:
+        name: ${{ inputs.KERNEL_BRANCH }}
+        path: ${{ inputs.KERNEL_BRANCH }}.tar.xz

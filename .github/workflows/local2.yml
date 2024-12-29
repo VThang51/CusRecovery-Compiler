@@ -34,20 +34,20 @@ jobs:
       with:
         # this might remove tools that are actually needed,
         # if set to "true" but frees about 6 GB
-        tool-cache: false
+        tool-cache: true
         # all of these default to true, but feel free to set to
         # "false" if necessary for your workflow
-        android: false
-        dotnet: false
-        haskell: false
-        large-packages: false
-        docker-images: false
-        swap-storage: false
+        android: true
+        dotnet: true
+        haskell: true
+        large-packages: true
+        docker-images: true
+        swap-storage: true
 
     - name: Setup Environment
       run: |
         sudo apt update
-        sudo apt-get install git-core bc make flex bison gcc-aarch64-linux-gnu
+        sudo apt-get install git-core bc make flex bison
 
     - name: Clone Kernel Source
       run: |
@@ -56,10 +56,16 @@ jobs:
         git clone ${{ inputs.KERNEL_URL }} -b ${{ inputs.KERNEL_BRANCH }} .
         git submodule update --init --recursive
 
+    - name: Clone Toolchain
+      run: |
+        cd kernel
+        git clone https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9 -b ${{ inputs.TC_BRANCH }} toolchain/gcc/linux-x86/aarch64/aarch64-linux-android-4.9
+
     - name: Building Kernel
       run: |
         cd kernel
         export ARCH=${{ inputs.ARCH }}
+        export CROSS_COMPILE=$(pwd)/toolchain/gcc/linux-x86/aarch64/aarch64-linux-android-4.9/bin/aarch64-linux-android-
         ${{ inputs.COMMAND }}
         make ARCH=${{ inputs.ARCH }} ${{ inputs.DEFCONFIG }}
         make ARCH=${{ inputs.ARCH }}
@@ -68,7 +74,7 @@ jobs:
       run: |
         rm -rfv kernel/toolchain
         tar -cvJf ${{ inputs.KERNEL_BRANCH }}.tar.xz kernel
-
+ 
     - uses: actions/upload-artifact@v4
       with:
         name: ${{ inputs.KERNEL_BRANCH }}

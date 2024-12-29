@@ -56,16 +56,10 @@ jobs:
         git clone ${{ inputs.KERNEL_URL }} -b ${{ inputs.KERNEL_BRANCH }} .
         git submodule update --init --recursive
 
-    - name: Clone Toolchain
-      run: |
-        cd kernel
-        git clone https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9 -b ${{ inputs.TC_BRANCH }} toolchain/gcc/linux-x86/aarch64/aarch64-linux-android-4.9
-
     - name: Building Kernel
       run: |
         cd kernel
         export ARCH=${{ inputs.ARCH }}
-        export CROSS_COMPILE=$(pwd)/toolchain/gcc/linux-x86/aarch64/aarch64-linux-android-4.9/bin/aarch64-linux-android-
         ${{ inputs.COMMAND }}
         make ARCH=${{ inputs.ARCH }} ${{ inputs.DEFCONFIG }}
         make ARCH=${{ inputs.ARCH }}

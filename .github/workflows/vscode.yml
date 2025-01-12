@@ -1,0 +1,47 @@
+name: Build Visual Studio Code
+on:
+  workflow_dispatch:
+    inputs:
+      BRANCH:
+        description: 'VSCode Source Branch'
+        required: true
+        default: 'main'
+jobs:
+  Buiding-VSCode:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Free Disk Space (Ubuntu)
+      uses: jlumbroso/free-disk-space@main
+      with:
+        # this might remove tools that are actually needed,
+        # if set to "true" but frees about 6 GB
+        tool-cache: false
+        # all of these default to true, but feel free to set to
+        # "false" if necessary for your workflow
+        android: false
+        dotnet: false
+        haskell: false
+        large-packages: false
+        docker-images: false
+        swap-storage: false
+
+    - name: Setup Environment
+      run: |
+        sudo apt update
+        sudo apt install git build-essential g++ libx11-dev libxkbfile-dev libsecret-1-dev libkrb5-dev python-is-python3
+
+    - name: Clone VSCode Source
+      run: |
+        git clone -b ${{ inputs.BRANCH }} https://github.com/microsoft/vscode.git
+        
+    - name: Building VSCode
+      run: |
+        cd vscode
+        npm install
+        npm run watch
+
+    - uses: actions/upload-artifact@v4
+      with:
+        name: vscode-${{ inputs.BRANCH }}
+        path: vscode
+        compression-level: 9

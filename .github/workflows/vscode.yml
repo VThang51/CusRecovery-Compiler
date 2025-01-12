@@ -28,6 +28,7 @@ jobs:
     - name: Setup Environment
       run: |
         sudo apt update
+        sudo apt upgrade
         sudo apt install git build-essential g++ libx11-dev libxkbfile-dev libsecret-1-dev libkrb5-dev python-is-python3
 
     - name: Clone VSCode Source

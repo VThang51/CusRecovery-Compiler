@@ -93,4 +93,6 @@ jobs:
     - uses: actions/upload-artifact@v4
       with:
         name: ${{ inputs.KERNEL_BRANCH }}
-        path: ${{ inputs.KERNEL_BRANCH }}.tar.xz
+        path: |
+          ${{ inputs.KERNEL_BRANCH }}.tar.xz
+          kernel/arch/arm64/boot/Image
